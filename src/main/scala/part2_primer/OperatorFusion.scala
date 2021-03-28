@@ -15,8 +15,8 @@ object OperatorFusion extends App {
   implicit val materialize: ActorMaterializer = ActorMaterializer()
 
   def print(n: Int): Unit = {
-    val instant = Instant.now();
-    println(instant + s" ${n}")
+    val instant = Instant.now()
+    println(instant + s" $n")
   }
 
   //create a simple source
