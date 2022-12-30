@@ -1,6 +1,6 @@
 package part2_primer
 
-import akka.NotUsed
+import akka.{Done, NotUsed}
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Flow, Keep, RunnableGraph, Sink, Source}
@@ -19,41 +19,41 @@ object MaterializingStreams extends App {
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
   //it is statis because weraph: RunnableGraph[NotUsed] = Source(1 to 10).to(Sink.foreach(println))
-  ////
-  ////  //here NotUsed means a glorified unit
-  ////  //  val simpleMaterializedValue: NotUsed = simpleGraph.run()
-  ////
-  ////  val source = Source(1 to 10)
-  ////  val sink = Sink.reduce[Int]((a, b) => a + b)
-  ////  //  val sumFuture: Future[Int] = source.runWith(sink)
-  ////  //
-  ////  //  sumFuture.onComplete {
-  ////  //    case Success(value) => println(s"The sum of all value is $value")
-  ////  //    case Failure(ex) => println(s"The sum of the elements could not be computer: $ex")
-  ////  //  }
-  ////
-  ////  //choosing materialized values
-  ////  val simpleSource = Source(1 to 10)
-  ////  val simpleFlow = Flow[Int].map(x => x + 1)
-  ////  val simpleSink = Sink.foreach[Int](println)
-  ////
-  ////  //BIG take away. keep doing this
-  ////  val graph = simpleSource.viaMat(simpleFlow)(Keep.right).toMat(simpleSink)(Keep.right)
-  ////
-  ////  graph.run().onComplete {
-  ////    case Success(_) => println("Stream processing finished")
-  ////    case Failure(ex) => println(s"Stream processing failed: $ex")
-  ////  }
-  ////
-  ////  //sugars
-  ////  Source(1 to 10).runWith(Sink.reduce[Int](_ + _)) //source.to(Sink.reduce)(Keep.right)
-  ////  Source(1 to 10).runReduce[Int](_ + _) //same
-  ////
-  ////  //backwards
-  ////  Sink.foreach[Int](println).runWith(Source.single[Int](42)) //source(..).to(sink..).run()
-  ////
-  ////  //both ways
-  ////  Flow[Int].map(x => x + 2).runWith( still need to call run
+  //
+  //    //here NotUsed means a glorified unit
+  //    //  val simpleMaterializedValue: NotUsed = simpleGraph.run()
+  //
+  //    val source = Source(1 to 10)
+  //    val sink = Sink.reduce[Int]((a, b) => a + b)
+  //    //  val sumFuture: Future[Int] = source.runWith(sink)
+  //    //
+  //    //  sumFuture.onComplete {
+  //    //    case Success(value) => println(s"The sum of all value is $value")
+  //    //    case Failure(ex) => println(s"The sum of the elements could not be computer: $ex")
+  //    //  }
+  //
+  //    //choosing materialized values
+  //    val simpleSource: Source[Int, NotUsed] = Source(1 to 10)
+  //    val simpleFlow: Flow[Int, Int, NotUsed] = Flow[Int].map(x => x + 1)
+  //    val simpleSink: Sink[Int, Future[Done]] = Sink.foreach[Int](println)
+  //
+  //    //BIG take away. keep doing this
+  //    val graph = simpleSource.viaMat(simpleFlow)(Keep.right).toMat(simpleSink)(Keep.right)
+  //
+  //    graph.run().onComplete {
+  //      case Success(_) => println("Stream processing finished")
+  //      case Failure(ex) => println(s"Stream processing failed: $ex")
+  //    }
+  //
+  //    //sugars
+  //    Source(1 to 10).runWith(Sink.reduce[Int](_ + _)) //source.to(Sink.reduce)(Keep.right)
+  //    Source(1 to 10).runReduce[Int](_ + _) //same
+  //
+  //    //backwards
+  //    Sink.foreach[Int](println).runWith(Source.single[Int](42)) //source(..).to(sink..).run()
+  //
+  //    //both ways
+  //    Flow[Int].map(x => x + 2).runWith( still need to call run
   //  val simpleGsimpleSource, simpleSink)
 
   /**
@@ -78,12 +78,13 @@ object MaterializingStreams extends App {
   )
 
   val source2 = Source(sentences)
-  val flowWithMap = Flow[String].map(x => x.split(" ").length)
+  val flowWithMap: Flow[String, Int, NotUsed] = Flow[String].map(x => x.split(" ").length)
   val flowWithReduce: Flow[Int, Int, NotUsed] = Flow[Int].reduce[Int]((x, y) => x + y)
   val flowWithFold: Flow[Int, Int, NotUsed] = Flow[Int].fold[Int](0) { (acc, x) => acc + x }
   val sinkWithReduce = Sink.reduce[Int]((x, y) => x + y)
-  val sinkWithFold =  Sink.fold[Int, Int](0) { (acc, x) => acc + x }
+  val sinkWithFold = Sink.fold[Int, Int](0) { (acc, x) => acc + x }
   val sinkWithFoldAll = Sink.fold[Int, String](0) { (acc, x) => acc + x.split(" ").length }
+
 
   //use the source with flowMap and flowReduce
   //  flowMap: this splits each sentence into words and then counts the length generated
@@ -106,8 +107,8 @@ object MaterializingStreams extends App {
     .toMat(sinkWithFold)(Keep.right)
     .run()
 
-//  source2
-//      .viaMat(flowWithReduce)
+  //  source2
+  //      .viaMat(flowWithReduce)
 
   graph3.onComplete {
     case Success(value) => println(s"total word count is $value")

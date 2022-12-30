@@ -56,7 +56,7 @@ object FirstPrinciples extends App {
   val theMostBoringSink = Sink.ignore
   val foreachSink = Sink.foreach[Int](println)
   val headSink = Sink.head[Int] //retrieves the head and closes the stream
-  val foldSink = Sink.fold[Int, Int](0)((a, b) => a + b)
+  val foldSink: Sink[Int, Future[Int]] = Sink.fold[Int, Int](0)((a, b) => a + b)
 
   //flows - usually mapped to collection operators
   val mapFlow = Flow[Int].map(x => 2 * x)
